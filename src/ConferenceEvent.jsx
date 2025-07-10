@@ -1,202 +1,219 @@
+// ConferenceEvent.jsx COMPLETO Y COMENTADO
+
 import React, { useState } from "react";
 import "./ConferenceEvent.css";
 import TotalCost from "./TotalCost";
 import { useSelector, useDispatch } from "react-redux";
+
+// Acciones para manejar las salas (venue)
 import { incrementQuantity, decrementQuantity } from "./venueSlice";
+
+// Acciones para manejar los complementos audiovisuales (add-ons)
+import { incrementAvQuantity, decrementAvQuantity } from "../avSlice";
+
+// Acciones para manejar las comidas (meals)
+import { incrementMealQuantity, decrementMealQuantity } from "../mealSlice";
+
 const ConferenceEvent = () => {
-    const [showItems, setShowItems] = useState(false);
-    const [numberOfPeople, setNumberOfPeople] = useState(1);
-    const venueItems = useSelector((state) => state.venue);
-    const dispatch = useDispatch();
-    const remainingAuditoriumQuantity = 3 - venueItems.find(item => item.name === "Auditorium Hall (Capacity:200)").quantity;
+  // Estados locales: mostrar detalles y número de personas
+  const [showItems, setShowItems] = useState(false);
+  const [numberOfPeople, setNumberOfPeople] = useState(1);
 
-    
-    const handleToggleItems = () => {
-        console.log("handleToggleItems called");
-        setShowItems(!showItems);
-    };
+  // Obtener los estados de Redux
+  const venueItems = useSelector((state) => state.venue);
+  const avItems = useSelector((state) => state.av);
+  const mealItems = useSelector((state) => state.meals);
+  const dispatch = useDispatch();
 
-    const handleAddToCart = (index) => {
-        if (venueItems[index].name === "Auditorium Hall (Capacity:200)" && venueItems[index].quantity >= 3) {
-          return; 
-        }
-        dispatch(incrementQuantity(index));
-      };
-    
-      const handleRemoveFromCart = (index) => {
-        if (venueItems[index].quantity > 0) {
-          dispatch(decrementQuantity(index));
-        }
-      };
-    const handleIncrementAvQuantity = (index) => {
-    };
+  // Cálculo para restringir a 3 auditorios máximo
+  const remainingAuditoriumQuantity =
+    3 - venueItems.find((item) => item.name === "Auditorium Hall (Capacity:200)").quantity;
 
-    const handleDecrementAvQuantity = (index) => {
-    };
+  // Alternar la vista de detalles
+  const handleToggleItems = () => {
+    setShowItems(!showItems);
+  };
 
-    const handleMealSelection = (index) => {
-       
-    };
+  // Agregar sala al carrito (venue)
+  const handleAddToCart = (index) => {
+    if (
+      venueItems[index].name === "Auditorium Hall (Capacity:200)" &&
+      venueItems[index].quantity >= 3
+    ) return;
+    dispatch(incrementQuantity(index));
+  };
 
-    const getItemsFromTotalCost = () => {
-        const items = [];
-    };
+  // Remover sala del carrito (venue)
+  const handleRemoveFromCart = (index) => {
+    if (venueItems[index].quantity > 0) {
+      dispatch(decrementQuantity(index));
+    }
+  };
 
-    const items = getItemsFromTotalCost();
+  // Agregar complemento audiovisual
+  const handleIncrementAvQuantity = (index) => {
+    dispatch(incrementAvQuantity(index));
+  };
 
-    const ItemsDisplay = ({ items }) => {
+  // Remover complemento audiovisual
+  const handleDecrementAvQuantity = (index) => {
+    dispatch(decrementAvQuantity(index));
+  };
 
-    };
-    const calculateTotalCost = (section) => {
-        let totalCost = 0;
-        if (section === "venue") {
-          venueItems.forEach((item) => {
-            totalCost += item.cost * item.quantity;
-          });
-        }
-        return totalCost;
-      };
-    const venueTotalCost = calculateTotalCost("venue");
+  // Agregar comida
+  const handleIncrementMealQuantity = (index) => {
+    dispatch(incrementMealQuantity(index));
+  };
 
-    const navigateToProducts = (idType) => {
-        if (idType == '#venue' || idType == '#addons' || idType == '#meals') {
-          if (showItems) { // Check if showItems is false
-            setShowItems(!showItems); // Toggle showItems to true only if it's currently false
-          }
-        }
+  // Remover comida
+  const handleDecrementMealQuantity = (index) => {
+    dispatch(decrementMealQuantity(index));
+  };
+
+  // Calcular costo total según la sección
+  const calculateTotalCost = (section) => {
+    let totalCost = 0;
+    if (section === "venue") {
+      venueItems.forEach((item) => {
+        totalCost += item.cost * item.quantity;
+      });
+    } else if (section === "addons") {
+      avItems.forEach((item) => {
+        totalCost += item.cost * item.quantity;
+      });
+    } else if (section === "meals") {
+      mealItems.forEach((item) => {
+        totalCost += item.cost * item.quantity;
+      });
+    }
+    return totalCost;
+  };
+
+  // Obtener totales por categoría
+  const venueTotalCost = calculateTotalCost("venue");
+  const addonTotalCost = calculateTotalCost("addons");
+  const mealsTotalCost = calculateTotalCost("meals");
+
+  // Navegación con anclas y mostrar secciones
+  const navigateToProducts = (idType) => {
+    if (["#venue", "#addons", "#meals"].includes(idType)) {
+      if (!showItems) {
+        setShowItems(true);
       }
+    }
+  };
 
-    return (
-        <>
-            <navbar className="navbar_event_conference">
-                <div className="company_logo">Conference Expense Planner</div>
-                <div className="left_navbar">
-                    <div className="nav_links">
-                        <a href="#venue" onClick={() => navigateToProducts("#venue")} >Venue</a>
-                        <a href="#addons" onClick={() => navigateToProducts('#addons')}>Add-ons</a>
-                        <a href="#meals" onClick={() => navigateToProducts('#meals')}>Meals</a>
-                    </div>
-                    <button className="details_button" onClick={() => setShowItems(!showItems)}>
-                        Show Details
-                    </button>
-                </div>
-            </navbar>
-            <div className="main_container">
-                {!showItems
-                    ?
-                    (
-                        <div className="items-information">
-                             <div id="venue" className="venue_container container_main">
-        <div className="text">
- 
-          <h1>Venue Room Selection</h1>
+  return (
+    <>
+      {/* BARRA SUPERIOR */}
+      <navbar className="navbar_event_conference">
+        <div className="company_logo">Conference Expense Planner</div>
+        <div className="left_navbar">
+          <div className="nav_links">
+            <a href="#venue" onClick={() => navigateToProducts("#venue")}>Venue</a>
+            <a href="#addons" onClick={() => navigateToProducts("#addons")}>Add-ons</a>
+            <a href="#meals" onClick={() => navigateToProducts("#meals")}>Meals</a>
+          </div>
+          <button className="details_button" onClick={handleToggleItems}>Show Details</button>
         </div>
-        <div className="venue_selection">
-          {venueItems.map((item, index) => (
-            <div className="venue_main" key={index}>
-              <div className="img">
-                <img src={item.img} alt={item.name} />
-              </div>
-              <div className="text">{item.name}</div>
-              <div>${item.cost}</div>
-     <div className="button_container">
-        {venueItems[index].name === "Auditorium Hall (Capacity:200)" ? (
+      </navbar>
 
-          <>
-          <button
-            className={venueItems[index].quantity === 0 ? "btn-warning btn-disabled" : "btn-minus btn-warning"}
-            onClick={() => handleRemoveFromCart(index)}
-          >
-            &#8211;
-          </button>
-          <span className="selected_count">
-            {venueItems[index].quantity > 0 ? ` ${venueItems[index].quantity}` : "0"}
-          </span>
-          <button
-            className={remainingAuditoriumQuantity === 0? "btn-success btn-disabled" : "btn-success btn-plus"}
-            onClick={() => handleAddToCart(index)}
-          >
-            &#43;
-          </button>
-        </>
+      <div className="main_container">
+        {!showItems ? (
+          // Vista principal: selección de ítems
+          <div className="items-information">
+
+            {/* SECCIÓN: Venue */}
+            <div id="venue" className="venue_container container_main">
+              <div className="text"><h1>Venue Room Selection</h1></div>
+              <div className="venue_selection">
+                {venueItems.map((item, index) => (
+                  <div className="venue_main" key={index}>
+                    <div className="img"><img src={item.img} alt={item.name} /></div>
+                    <div className="text">{item.name}</div>
+                    <div>${item.cost}</div>
+                    <div className="button_container">
+                      <button
+                        className={item.quantity === 0 ? "btn-warning btn-disabled" : "btn-warning btn-plus"}
+                        onClick={() => handleRemoveFromCart(index)}
+                      >&#8211;</button>
+                      <span className="selected_count">{item.quantity}</span>
+                      <button
+                        className={item.name === "Auditorium Hall (Capacity:200)" && remainingAuditoriumQuantity === 0 ? "btn-success btn-disabled" : "btn-success btn-plus"}
+                        onClick={() => handleAddToCart(index)}
+                      >&#43;</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="total_cost">Total Cost: ${venueTotalCost}</div>
+            </div>
+
+            {/* SECCIÓN: Add-ons */}
+            <div id="addons" className="venue_container container_main">
+              <div className="text"><h1>Add-ons Selection</h1></div>
+              <div className="addons_selection">
+                {avItems.map((item, index) => (
+                  <div className="venue_main" key={index}>
+                    <div className="img"><img src={item.img} alt={item.name} /></div>
+                    <div className="text">{item.name}</div>
+                    <div>${item.cost}</div>
+                    <div className="button_container">
+                      <button
+                        className={item.quantity === 0 ? "btn-warning btn-disabled" : "btn-warning btn-plus"}
+                        onClick={() => handleDecrementAvQuantity(index)}
+                      >&#8211;</button>
+                      <span className="selected_count">{item.quantity}</span>
+                      <button
+                        className="btn-success btn-plus"
+                        onClick={() => handleIncrementAvQuantity(index)}
+                      >&#43;</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="total_cost">Total Cost: ${addonTotalCost}</div>
+            </div>
+
+            {/* SECCIÓN: Meals */}
+            <div id="meals" className="venue_container container_main">
+              <div className="text"><h1>Meals Selection</h1></div>
+              <div className="meal_selection">
+                {mealItems.map((item, index) => (
+                  <div className="venue_main" key={index}>
+                    <div className="img"><img src={item.img} alt={item.name} /></div>
+                    <div className="text">{item.name}</div>
+                    <div>${item.cost}</div>
+                    <div className="button_container">
+                      <button
+                        className={item.quantity === 0 ? "btn-warning btn-disabled" : "btn-warning btn-plus"}
+                        onClick={() => handleDecrementMealQuantity(index)}
+                      >&#8211;</button>
+                      <span className="selected_count">{item.quantity}</span>
+                      <button
+                        className="btn-success btn-plus"
+                        onClick={() => handleIncrementMealQuantity(index)}
+                      >&#43;</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="total_cost">Total Cost: ${mealsTotalCost}</div>
+            </div>
+          </div>
         ) : (
-          <div className="button_container">
-           <button
-              className={venueItems[index].quantity ===0 ? " btn-warning btn-disabled" : "btn-warning btn-plus"}
-              onClick={() => handleRemoveFromCart(index)}
-            >
-               &#8211;
-            </button>
-            <span className="selected_count">
-              {venueItems[index].quantity > 0 ? ` ${venueItems[index].quantity}` : "0"}
-            </span>
-            <button
-              className={venueItems[index].quantity === 10 ? " btn-success btn-disabled" : "btn-success btn-plus"}
-              onClick={() => handleAddToCart(index)}
-            >
-             &#43;
-            </button>
-            
-            
+          // Vista de resumen
+          <div className="total_amount_detail">
+            <TotalCost
+              totalCosts={{ venueTotalCost, addonTotalCost, mealsTotalCost }}
+              handleClick={handleToggleItems}
+              ItemsDisplay={() => null} // Reemplazar si deseas mostrar los ítems seleccionados
+            />
           </div>
         )}
       </div>
-            </div>
-          ))}
-        </div>
-        <div className="total_cost">Total Cost: ${venueTotalCost}</div>
-      </div>
-
-                            {/*Necessary Add-ons*/}
-                            <div id="addons" className="venue_container container_main">
-
-
-                                <div className="text">
-
-                                    <h1> Add-ons Selection</h1>
-
-                                </div>
-                                <div className="addons_selection">
-
-                                </div>
-                                <div className="total_cost">Total Cost:</div>
-
-                            </div>
-
-                            {/* Meal Section */}
-
-                            <div id="meals" className="venue_container container_main">
-
-                                <div className="text">
-
-                                    <h1>Meals Selection</h1>
-                                </div>
-
-                                <div className="input-container venue_selection">
-
-                                </div>
-                                <div className="meal_selection">
-
-                                </div>
-                                <div className="total_cost">Total Cost: </div>
-
-
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="total_amount_detail">
-                            <TotalCost totalCosts={totalCosts} handleClick={handleToggleItems} ItemsDisplay={() => <ItemsDisplay items={items} />} />
-                        </div>
-                    )
-                }
-
-
-
-
-            </div>
-        </>
-
-    );
+    </>
+  );
 };
 
 export default ConferenceEvent;
